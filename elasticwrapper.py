@@ -20,7 +20,7 @@ class ElasticWrapper:
     @staticmethod
     def search(index_name, body):
         docs = es.search(index=index_name, body=body)
-        return [doc['_source'] for doc in docs['hits']['hits']]
+        return ElasticWrapper._parse_response_docs(docs)
 
     @staticmethod
     def bulk_index_docs(docs, index_name):
@@ -54,15 +54,15 @@ class ElasticWrapper:
         outputs = []
 
         resp = es.search(index=index, body=body, scroll='1m')
-        outputs.extend(ElasticWrapper.parse_response_docs(resp))
+        outputs.extend(ElasticWrapper._parse_response_docs(resp))
 
         while len(resp['hits']['hits']) > 0:
             print(f'{len(outputs)} docs extracted!')
             resp = es.scroll(scroll_id=resp['_scroll_id'], scroll='1m')
-            outputs.extend(ElasticWrapper.parse_response_docs(resp))
+            outputs.extend(ElasticWrapper._parse_response_docs(resp))
 
         return outputs
 
     @staticmethod
-    def parse_response_docs(resp):
+    def _parse_response_docs(resp):
         return [x['_source'] for x in resp['hits']['hits']]
