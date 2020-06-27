@@ -16,12 +16,12 @@ class ElasticWrapper:
             es.indices.create(index=index_name)
             return True
         return False
-        
+
     @staticmethod
     def search(index_name, body):
         docs = es.search(index=index_name, body=body)
         return [doc['_source'] for doc in docs['hits']['hits']]
-        
+
     @staticmethod
     def bulk_index_docs(docs, index_name):
         bulk_request = [e for doc_operation in map(lambda d: [{
@@ -38,11 +38,9 @@ class ElasticWrapper:
             es.bulk(body=bulk_request[start:start +
                                       partitions_size], request_timeout=1000)
 
-            
             start += partitions_size
             if start > len(bulk_request):
                 break
-        
 
     @staticmethod
     def index_doc(doc, id, index):
@@ -54,15 +52,17 @@ class ElasticWrapper:
             uses the method of scrolling to extract all documents (>10000) of an index with a query
         '''
         outputs = []
-        
+
         resp = es.search(index=index, body=body, scroll='1m')
-        outputs.extend(resp['hits']['hits'])
-        
+        outputs.extend(parse_response_docs(resp))
+
         while len(resp['hits']['hits']) > 0:
             resp = es.scroll(scroll_id=resp['_scroll_id'], scroll='1m')
-            outputs.extend(resp['hits']['hits'])
+            outputs.extend(parse_response_docs(resp))
             print(f'{len(outputs)} docs extracted!')
-            
+
         return outputs
 
-
+    @staticmethod
+    def parse_response_docs(resp):
+        return [x['_source'] for x in resp['hits']['hits']]
