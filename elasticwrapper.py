@@ -13,7 +13,7 @@ class ElasticWrapper:
     @staticmethod
     def create_index_if_not_exist(index_name):
         if not es.indices.exists(index_name):
-            es.indices.create(index=index_name)
+            es.indices.create(index=index_name, params={'timeout': '1000s'})
             return True
         return False
 
