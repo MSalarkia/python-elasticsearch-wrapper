@@ -57,9 +57,9 @@ class ElasticWrapper:
         outputs.extend(parse_response_docs(resp))
 
         while len(resp['hits']['hits']) > 0:
+            print(f'{len(outputs)} docs extracted!')
             resp = es.scroll(scroll_id=resp['_scroll_id'], scroll='1m')
             outputs.extend(parse_response_docs(resp))
-            print(f'{len(outputs)} docs extracted!')
 
         return outputs
 
